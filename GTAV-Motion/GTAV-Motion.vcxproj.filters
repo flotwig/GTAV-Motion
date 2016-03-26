@@ -3,8 +3,12 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="script.cpp" />
+    <ClCompile Include="util.cpp" />
+    <ClCompile Include="MotionListener.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="script.h" />
+    <ClInclude Include="util.h" />
+    <ClInclude Include="MotionListener.h" />
   </ItemGroup>
 </Project>

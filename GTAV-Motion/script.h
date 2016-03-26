@@ -12,4 +12,6 @@
 
 #include "inc\main.h"
 
+#include "util.h"
+
 void ScriptMain();
