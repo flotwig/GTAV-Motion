@@ -55,7 +55,6 @@ void main() {
 }
 
 void ScriptMain() {
-	// note: after looking at it for long enough, "player" ceases to look like a word
 	srand(GetTickCount());
 	main();
 }
