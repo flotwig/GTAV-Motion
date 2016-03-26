@@ -10,10 +10,8 @@ Ped player;
 Vehicle playerVehicle;
 float steerBias = 0.0;
 
-void main()
-{	
-	while (true)
-	{
+void main() {	
+	while (true) {
 		/**
 			Call functions in this script which steer the vehicle more left or
 			more right. Using this primitive:
@@ -53,8 +51,7 @@ void update_steer_bias() {
 	return;
 }
 
-void ScriptMain()
-{
+void ScriptMain() {
 	player = PLAYER::PLAYER_PED_ID();
 	playerVehicle = PED::GET_VEHICLE_PED_IS_IN(player, 0); // 0 = CurrentVehicle, 1 = LastVehicle
 	// note: after looking at it for long enough, "player" ceases to look like a word
