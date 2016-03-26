@@ -1,5 +1,4 @@
 #include "script.h"
-#include "keyboard.h"
 
 #include <string>
 #include <ctime>
