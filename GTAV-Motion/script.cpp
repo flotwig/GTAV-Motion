@@ -1,45 +1,72 @@
 #include "script.h"
 #include "Leap.h"
-
+#include <iostream>
 #include <string>
 #include <ctime>
 
 #pragma warning(disable : 4244 4305) // double <-> float conversions
 
-float steerBias = 0.0;
+BOOL send_control(int control) {
+	return CONTROLS::_SET_CONTROL_NORMAL(0, control, 1.0);
+}
 
-void update_steer_bias() {
-	// TODO: retrieve latest steer bias from game and update steerBias
-	return;
+BOOL player_can_control_car() {
+	return !(!ENTITY::DOES_ENTITY_EXIST(PLAYER::PLAYER_PED_ID()) ||
+		!PLAYER::IS_PLAYER_CONTROL_ON(PLAYER::PLAYER_ID()) ||
+		ENTITY::IS_ENTITY_DEAD(PLAYER::PLAYER_PED_ID()) ||
+		PLAYER::IS_PLAYER_BEING_ARRESTED(PLAYER::PLAYER_ID(), TRUE));
 }
 
 void turn_right() {
-	update_steer_bias();
-	steerBias = steerBias + .05;
-	steerBias = steerBias > 1.0 ? 1.0 : steerBias;
+	if (!player_can_control_car()) return;
+	send_control(64); // VehicleMoveRightOnly
 }
 
 void turn_left() {
-	update_steer_bias();
-	steerBias = steerBias - .05;
-	steerBias = steerBias < -1.0 ? -1.0 : steerBias;
+	if (!player_can_control_car()) return;
+	send_control(63); // VehicleMoveLeftOnly
 }
 
 void accelerate() {
-	// TODO: implement
-	return;
+	if (!player_can_control_car()) return;
+	send_control(71); // VehicleAccelerate
 }
 
 void brake() {
-	// TODO: implement
-	return;
+	if (!player_can_control_car()) return;
+	send_control(72); // VehicleBrake
+}
+
+class MotionListener : public Leap::Listener {
+public:
+	virtual void onConnect(const Leap::Controller&);
+	virtual void onFrame(const Leap::Controller&);
+};
+
+void MotionListener::onConnect(const Leap::Controller& controller) {
+	std::cout << "Connected" << std::endl;
+}
+
+void MotionListener::onFrame(const Leap::Controller& controller) {
+	//All the frame shit goes on here
+	const Leap::Frame frame = controller.frame();
+	for (auto &hands : frame.hands()){
+		float temp = hands.palmPosition().x;
+		if (temp < -50.00) {
+			turn_left();
+			std::cout << "Turning Left" << std::endl;
+		}
+		else if (temp > 50.00) {
+			turn_right();
+			std::cout << "Turning Right" << std::endl;
+
+		}
+
+	}
 }
 
 void loop() {
-	float initialSteerBias = steerBias;
-	/*
-	GTAV native functions!: http://www.dev-c.com/nativedb/func/info/42a8ec77d5150cbe
-	*/
+	// GTAV native functions!: http://www.dev-c.com/nativedb/func/info/42a8ec77d5150cbe
 	/* somehow Harsha's code needs to end up calling turn_right or turn_left.
 	in this loop we should poll frames from the motion detector and see if
 	a turn is necessary. turn_right/_left will update steerBias which is
@@ -51,27 +78,19 @@ void loop() {
 	/* How to tell if someone is turning? Could use Hand.grabStrength() to see
 	 * if player is gripping the wheel and could track translation of the hand
 	 * between frames to see if significant movement has been made. */
-	// If something has affected the steerBias during this iteration...
-	if (initialSteerBias != steerBias) {
-		// ...set the steer bias of the vehicle the current player ped is currently in.
-		VEHICLE::SET_VEHICLE_STEER_BIAS(
-			PED::GET_VEHICLE_PED_IS_IN(PLAYER::PLAYER_PED_ID(), 0),
-			steerBias
-			);
-	}
+	// Vehicle playerVehicle = PED::GET_VEHICLE_PED_IS_IN(PLAYER::PLAYER_PED_ID(),0);
 }
 
-void main() {	
+void main() {
+
+	MotionListener listener;
+	Leap::Controller controller;
+	controller.addListener(listener);
 	while (true) {
 		WAIT(0);
-		// check to make sure player exists and it makes sense for them to be driving
-		if (!ENTITY::DOES_ENTITY_EXIST(PLAYER::PLAYER_PED_ID()) ||
-			!PLAYER::IS_PLAYER_CONTROL_ON(PLAYER::PLAYER_ID()) ||
-			ENTITY::IS_ENTITY_DEAD(PLAYER::PLAYER_PED_ID()) ||
-			PLAYER::IS_PLAYER_BEING_ARRESTED(PLAYER::PLAYER_ID(), TRUE))
-			continue;
 		loop();
 	}
+	controller.removeListener(listener);
 }
 
 void ScriptMain() {
